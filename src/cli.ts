@@ -7,6 +7,7 @@ import { google } from "googleapis";
 import { CodeChallengeMethod } from "google-auth-library";
 import { assertAlias, getClient, listStoredAccounts, newOAuthClient, readAccount, removeAccount, saveAccount } from "./auth.js";
 import { CONFIG_DIR, SCOPES } from "./config.js";
+import { PAGE_CSP, renderCallbackPage, type CallbackResult } from "./page.js";
 
 const [command, alias] = process.argv.slice(2);
 
@@ -41,40 +42,68 @@ async function addAccount(name: string | undefined) {
   console.log(`Si rien ne s'ouvre, colle cette URL dans ton navigateur :\n${url}\n`);
   openBrowser(url);
 
-  const code = await new Promise<string>((resolve, reject) => {
+  // On garde la réponse HTTP en attente : la page n'est rendue qu'une fois
+  // l'échange de jetons terminé, pour afficher le vrai résultat.
+  const { code, res } = await new Promise<{ code: string; res: http.ServerResponse }>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("Délai dépassé (5 minutes).")), 5 * 60_000);
     server.on("request", (req, res) => {
       const params = new URL(req.url ?? "/", redirectUri).searchParams;
-      const html = (msg: string) => res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" }).end(`<h2>${msg}</h2>`);
       if (!params.has("code") && !params.has("error")) return void res.writeHead(404).end();
       clearTimeout(timer);
-      if (params.get("state") !== state) {
-        html("Requête invalide (state).");
-        return reject(new Error("Paramètre state invalide."));
-      }
+      const fail = (message: string) =>
+        void sendPage(res, { ok: false, alias: name, message }).then(() => reject(new Error(message)));
+      if (params.get("state") !== state) return fail("La requête de retour n'est pas valide (paramètre state).");
       const error = params.get("error");
-      if (error) {
-        html(`Autorisation refusée : ${error}`);
-        return reject(new Error(`Autorisation refusée : ${error}`));
-      }
-      html(`Compte "${name}" connecté. Tu peux fermer cet onglet.`);
-      resolve(params.get("code")!);
+      if (error) return fail(error === "access_denied" ? "L'autorisation a été refusée sur l'écran Google." : `Google a renvoyé l'erreur ${error}.`);
+      resolve({ code: params.get("code")!, res });
     });
-  }).finally(() => server.close());
+  });
 
-  const { tokens } = await client.getToken({ code, codeVerifier });
-  if (!tokens.refresh_token) throw new Error("Google n'a pas renvoyé de refresh token. Réessaie.");
+  try {
+    const { tokens } = await client.getToken({ code, codeVerifier });
+    if (!tokens.refresh_token) throw new Error("Google n'a pas renvoyé de refresh token.");
 
-  const granted = new Set((tokens.scope ?? "").split(" "));
-  const missing = SCOPES.filter((s) => s.startsWith("https://") && !granted.has(s));
-  if (missing.length) {
-    console.warn(`\nAttention, autorisations non cochées : ${missing.join(", ")}\nLes outils correspondants échoueront pour ce compte.`);
+    const granted = new Set((tokens.scope ?? "").split(" "));
+    const services = SERVICES.map((s) => ({ ...s, granted: granted.has(s.scope) }));
+    const missing = services.filter((s) => !s.granted).map((s) => s.name);
+    if (missing.length) {
+      console.warn(`\nAttention, autorisations non cochées : ${missing.join(", ")}\nLes outils correspondants échoueront pour ce compte.`);
+    }
+
+    client.setCredentials(tokens);
+    const { data } = await google.oauth2({ version: "v2", auth: client }).userinfo.get();
+    const email = data.email ?? "inconnu";
+    saveAccount({ alias: name, email, addedAt: new Date().toISOString(), credentials: tokens });
+    await sendPage(res, { ok: true, alias: name, email, services });
+    console.log(`\nOK : "${name}" -> ${email}. Disponible immédiatement dans Claude (pas besoin de redémarrer).`);
+  } catch (err) {
+    await sendPage(res, { ok: false, alias: name, message: (err as Error).message });
+    throw err;
+  } finally {
+    server.close();
   }
+}
 
-  client.setCredentials(tokens);
-  const { data } = await google.oauth2({ version: "v2", auth: client }).userinfo.get();
-  saveAccount({ alias: name, email: data.email ?? "inconnu", addedAt: new Date().toISOString(), credentials: tokens });
-  console.log(`\nOK : "${name}" -> ${data.email}. Disponible immédiatement dans Claude (pas besoin de redémarrer).`);
+const SERVICES = [
+  { name: "Gmail", detail: "Lire, rechercher, classer, rédiger et envoyer", scope: "https://www.googleapis.com/auth/gmail.modify" },
+  { name: "Google Agenda", detail: "Consulter et gérer les événements", scope: "https://www.googleapis.com/auth/calendar" },
+  { name: "Google Drive", detail: "Rechercher et lire les fichiers (lecture seule)", scope: "https://www.googleapis.com/auth/drive.readonly" },
+];
+
+/** Envoie la page et attend qu'elle soit transmise (la CLI peut quitter juste après). */
+function sendPage(res: http.ServerResponse, result: CallbackResult): Promise<void> {
+  return new Promise((resolve) => {
+    res.on("finish", resolve);
+    res
+    .writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Security-Policy": PAGE_CSP,
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer",
+      "X-Content-Type-Options": "nosniff",
+    })
+    .end(renderCallbackPage(result));
+  });
 }
 
 function list() {
