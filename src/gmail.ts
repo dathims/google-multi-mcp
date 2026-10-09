@@ -87,14 +87,17 @@ async function buildMessage(alias: string, c: Compose): Promise<gmail_v1.Schema$
       format: "metadata",
       metadataHeaders: ["From", "Reply-To", "Subject", "Message-ID", "References"],
     });
+    // Ces en-têtes viennent d'un mail reçu, donc d'un tiers : on les déplie
+    // (suppression des CR/LF) avant de les recopier, pour bloquer toute injection.
     const h = data.payload?.headers;
-    const msgId = header(h, "Message-ID");
+    const original = (name: string) => header(h, name)?.replace(/[\r\n]+[ \t]*/g, " ").trim();
+    const msgId = original("Message-ID");
     threadId = data.threadId ?? undefined;
-    to ??= header(h, "Reply-To") ?? header(h, "From");
-    const origSubject = header(h, "Subject") ?? "";
+    to ??= original("Reply-To") ?? original("From");
+    const origSubject = original("Subject") ?? "";
     subject ??= /^re:/i.test(origSubject) ? origSubject : `Re: ${origSubject}`;
     if (msgId) {
-      extra.push(`In-Reply-To: ${msgId}`, `References: ${[header(h, "References"), msgId].filter(Boolean).join(" ")}`);
+      extra.push(`In-Reply-To: ${msgId}`, `References: ${[original("References"), msgId].filter(Boolean).join(" ")}`);
     }
   }
 
@@ -110,7 +113,9 @@ async function buildMessage(alias: string, c: Compose): Promise<gmail_v1.Schema$
     "MIME-Version: 1.0",
     'Content-Type: text/plain; charset="UTF-8"',
     "Content-Transfer-Encoding: base64",
-  ].filter(Boolean);
+  ].filter((l): l is string => Boolean(l));
+  // Dernier filet : aucune ligne d'en-tête ne doit pouvoir en créer une autre.
+  if (lines.some((l) => /[\r\n]/.test(l))) throw new Error("En-tête de message invalide (retour à la ligne).");
   const body = Buffer.from(c.body, "utf8").toString("base64").replace(/.{76}/g, "$&\r\n");
   const raw = Buffer.from(`${lines.join("\r\n")}\r\n\r\n${body}`, "utf8").toString("base64url");
   return { raw, threadId };
