@@ -1,11 +1,11 @@
-import { google } from "googleapis";
+import { drive as driveApi } from "@googleapis/drive";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getClient } from "./auth.js";
 import { accountParamDescription, resolveAccounts, runOnAccounts } from "./accounts.js";
 import { safe, truncate } from "./util.js";
 
-const drive = (alias: string) => google.drive({ version: "v3", auth: getClient(alias) });
+const drive = (alias: string) => driveApi({ version: "v3", auth: getClient(alias) });
 
 // Formats Google natifs : on les exporte en texte pour que Claude puisse les lire.
 const EXPORTS: Record<string, string> = {

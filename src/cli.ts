@@ -3,7 +3,8 @@ import crypto from "node:crypto";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { spawn } from "node:child_process";
-import { google } from "googleapis";
+import { gmail as gmailApi } from "@googleapis/gmail";
+import { oauth2 as oauth2Api } from "@googleapis/oauth2";
 import { CodeChallengeMethod } from "google-auth-library";
 import { assertAlias, getClient, listStoredAccounts, newOAuthClient, readAccount, removeAccount, saveAccount } from "./auth.js";
 import { CONFIG_DIR, SCOPES } from "./config.js";
@@ -11,9 +12,19 @@ import { PAGE_CSP, renderCallbackPage, type CallbackResult } from "./page.js";
 
 const [command, alias] = process.argv.slice(2);
 
+// En conteneur, Google doit rediriger vers un port publié sur l'hôte : on fixe le port
+// et on écoute sur toutes les interfaces du conteneur (publié en 127.0.0.1 côté hôte).
+const OAUTH_PORT = Number(process.env.GOOGLE_MULTI_MCP_OAUTH_PORT ?? 0);
+const OAUTH_HOST = process.env.GOOGLE_MULTI_MCP_OAUTH_HOST ?? "127.0.0.1";
+const NO_BROWSER = Boolean(process.env.GOOGLE_MULTI_MCP_NO_BROWSER);
+
 function openBrowser(url: string) {
+  if (NO_BROWSER) return;
   const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer" : "xdg-open";
-  spawn(cmd, [url], { stdio: "ignore", detached: true }).unref();
+  const child = spawn(cmd, [url], { stdio: "ignore", detached: true });
+  // Pas de navigateur disponible (conteneur, serveur distant) : l'URL affichée suffit.
+  child.on("error", () => {});
+  child.unref();
 }
 
 /** Flux OAuth "loopback" avec PKCE : Google redirige vers un mini serveur HTTP local éphémère. */
@@ -22,7 +33,10 @@ async function addAccount(name: string | undefined) {
   if (readAccount(name)) console.log(`Le compte "${name}" existe déjà : il va être ré-autorisé.`);
 
   const server = http.createServer();
-  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(OAUTH_PORT, OAUTH_HOST, resolve);
+  });
   const redirectUri = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
   const client = newOAuthClient(redirectUri);
@@ -38,8 +52,8 @@ async function addAccount(name: string | undefined) {
     code_challenge_method: CodeChallengeMethod.S256,
   });
 
-  console.log(`\nConnexion du compte "${name}". Ouverture du navigateur...`);
-  console.log(`Si rien ne s'ouvre, colle cette URL dans ton navigateur :\n${url}\n`);
+  console.log(`\nConnexion du compte "${name}".${NO_BROWSER ? "" : " Ouverture du navigateur..."}`);
+  console.log(`${NO_BROWSER ? "Ouvre" : "Si rien ne s'ouvre, colle"} cette URL dans ton navigateur :\n${url}\n`);
   openBrowser(url);
 
   // On garde la réponse HTTP en attente : la page n'est rendue qu'une fois
@@ -71,11 +85,11 @@ async function addAccount(name: string | undefined) {
     }
 
     client.setCredentials(tokens);
-    const { data } = await google.oauth2({ version: "v2", auth: client }).userinfo.get();
+    const { data } = await oauth2Api({ version: "v2", auth: client }).userinfo.get();
     const email = data.email ?? "inconnu";
     saveAccount({ alias: name, email, addedAt: new Date().toISOString(), credentials: tokens });
     await sendPage(res, { ok: true, alias: name, email, services });
-    console.log(`\nOK : "${name}" -> ${email}. Disponible immédiatement dans Claude (pas besoin de redémarrer).`);
+    console.log(`\nOK : "${name}" -> ${email}. Disponible immédiatement dans ton agent (pas besoin de redémarrer).`);
   } catch (err) {
     await sendPage(res, { ok: false, alias: name, message: (err as Error).message });
     throw err;
@@ -116,7 +130,7 @@ function list() {
 async function check() {
   for (const a of listStoredAccounts()) {
     try {
-      const { data } = await google.gmail({ version: "v1", auth: getClient(a.alias) }).users.getProfile({ userId: "me" });
+      const { data } = await gmailApi({ version: "v1", auth: getClient(a.alias) }).users.getProfile({ userId: "me" });
       console.log(`OK      ${a.alias.padEnd(16)} ${data.emailAddress} (${data.messagesTotal} messages)`);
     } catch (err) {
       console.log(`ERREUR  ${a.alias.padEnd(16)} ${(err as Error).message}`);

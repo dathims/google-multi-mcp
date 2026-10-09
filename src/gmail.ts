@@ -1,11 +1,11 @@
-import { google, type gmail_v1 } from "googleapis";
+import { gmail as gmailApi, type gmail_v1 } from "@googleapis/gmail";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getClient } from "./auth.js";
 import { accountParamDescription, enabledAccounts, resolveAccounts, runOnAccounts } from "./accounts.js";
 import { rejectNewlines, safe, truncate } from "./util.js";
 
-const gmail = (alias: string) => google.gmail({ version: "v1", auth: getClient(alias) });
+const gmail = (alias: string) => gmailApi({ version: "v1", auth: getClient(alias) });
 
 type Headers = gmail_v1.Schema$MessagePartHeader[] | undefined;
 const header = (headers: Headers, name: string) =>

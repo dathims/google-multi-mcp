@@ -1,4 +1,4 @@
-import { google, type calendar_v3 } from "googleapis";
+import { calendar as calendarApi, type calendar_v3 } from "@googleapis/calendar";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getClient } from "./auth.js";
@@ -6,7 +6,7 @@ import { accountParamDescription, resolveAccounts, runOnAccounts } from "./accou
 import { DEFAULT_TIME_ZONE } from "./config.js";
 import { safe, truncate } from "./util.js";
 
-const calendar = (alias: string) => google.calendar({ version: "v3", auth: getClient(alias) });
+const calendar = (alias: string) => calendarApi({ version: "v3", auth: getClient(alias) });
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 

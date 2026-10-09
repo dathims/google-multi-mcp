@@ -65,7 +65,7 @@ export function renderCallbackPage(r: CallbackResult): string {
   const body = r.ok
     ? `<p class="eyebrow">Connexion Google</p>
 <h1>Compte connecté.</h1>
-<p class="lead"><strong>${esc(r.email)}</strong> est maintenant disponible pour Claude sous l'alias <span class="alias">${alias}</span>.</p>
+<p class="lead"><strong>${esc(r.email)}</strong> est maintenant disponible pour ton agent IA sous l'alias <span class="alias">${alias}</span>.</p>
 <section class="card" aria-label="Services autorisés">
 ${r.services
   .map(
@@ -77,7 +77,7 @@ ${r.services
 </section>
 <section class="card next">
 <h2>Ajouter un autre compte</h2>
-<p>Chaque compte Google a son alias. Il est utilisable tout de suite dans Claude, sans redémarrage.</p>
+<p>Chaque compte Google a son alias. Il est utilisable tout de suite dans ton agent, sans redémarrage.</p>
 <pre><span class="p">$ </span>npm run add-account -- pro</pre>
 </section>
 <p class="close">Tu peux fermer cet onglet <kbd>⌘ W</kbd></p>`

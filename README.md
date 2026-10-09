@@ -106,6 +106,38 @@ entrées qui pointent vers le même serveur avec un filtre :
 "google-pro":   { "command": "node", "args": [".../dist/index.js", "--accounts=pro"] }
 ```
 
+## Avec Docker
+
+Une image prête à l'emploi est publiée pour amd64 et arm64 : `ghcr.io/dathims/google-multi-mcp`.
+Pas besoin de Node.js ni de cloner le dépôt. Seule l'étape 1 (client OAuth Google) reste nécessaire.
+
+**Ajouter un compte.** Le navigateur ne peut pas s'ouvrir depuis le conteneur : copie l'URL affichée.
+Le port 8765 est publié uniquement sur `127.0.0.1` pour recevoir la réponse de Google.
+
+```bash
+docker run -it --rm -p 127.0.0.1:8765:8765 -v ~/.config/google-multi-mcp:/config ghcr.io/dathims/google-multi-mcp add perso
+```
+
+Autres commandes : `list`, `check`, `remove <alias>` à la place de `add perso`.
+
+**Brancher l'agent.** Même format pour Claude Desktop, Cursor et Gemini CLI. Remplace le chemin par le tien
+et `TZ` par ton fuseau : sans lui, le conteneur est en UTC et les heures des événements seraient décalées.
+
+```json
+{
+  "mcpServers": {
+    "google-multi": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "TZ=Europe/Paris",
+               "-v", "/Users/<toi>/.config/google-multi-mcp:/config",
+               "ghcr.io/dathims/google-multi-mcp"]
+    }
+  }
+}
+```
+
+Sous Linux, ajoute `"--user", "<uid>:<gid>"` (valeurs de `id -u` et `id -g`) pour que le conteneur puisse lire les fichiers en `600`. Inutile sur macOS avec Docker Desktop.
+
 ## Exemples de demandes à Claude
 
 - « Résume mes mails non lus de cette semaine sur tous mes comptes. »

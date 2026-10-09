@@ -1,13 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import { google, type Auth } from "googleapis";
+import { OAuth2Client, type Credentials } from "google-auth-library";
 import { ACCOUNTS_DIR, CLIENT_FILE } from "./config.js";
 
 export interface StoredAccount {
   alias: string;
   email: string;
   addedAt: string;
-  credentials: Auth.Credentials;
+  credentials: Credentials;
 }
 
 const ALIAS_RE = /^[a-z0-9][a-z0-9_-]{0,31}$/;
@@ -34,9 +34,9 @@ function loadClientInfo(): { client_id: string; client_secret: string } {
   return info;
 }
 
-export function newOAuthClient(redirectUri?: string): Auth.OAuth2Client {
+export function newOAuthClient(redirectUri?: string): OAuth2Client {
   const { client_id, client_secret } = loadClientInfo();
-  return new google.auth.OAuth2(client_id, client_secret, redirectUri);
+  return new OAuth2Client(client_id, client_secret, redirectUri);
 }
 
 function accountFile(alias: string): string {
@@ -76,9 +76,9 @@ export function removeAccount(alias: string): boolean {
   return true;
 }
 
-const clients = new Map<string, Auth.OAuth2Client>();
+const clients = new Map<string, OAuth2Client>();
 
-export function getClient(alias: string): Auth.OAuth2Client {
+export function getClient(alias: string): OAuth2Client {
   const cached = clients.get(alias);
   if (cached) return cached;
 
