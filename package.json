@@ -1,0 +1,31 @@
+{
+  "name": "google-multi-mcp",
+  "version": "1.0.0",
+  "description": "Serveur MCP local donnant à Claude l'accès à plusieurs comptes Gmail, Google Calendar et Google Drive",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "google-multi-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "add-account": "node dist/cli.js add",
+    "list-accounts": "node dist/cli.js list",
+    "remove-account": "node dist/cli.js remove",
+    "check-accounts": "node dist/cli.js check"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "google-auth-library": "^11.2.0",
+    "googleapis": "^185.0.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "typescript": "^5"
+  }
+}
