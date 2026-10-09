@@ -7,6 +7,10 @@ chacun ; ici, chaque outil prend un paramètre `account` (`perso`, `pro`, une ad
 
 Les jetons restent sur ta machine dans `~/.config/google-multi-mcp/` (droits `600`), jamais dans ce dépôt.
 
+> **English:** a local MCP server giving Claude access to several Google accounts at once (Gmail, Google Calendar, Google Drive). Runs on your machine with your own OAuth client. Documentation: <https://plugin.usecockpit.co/google-multi/>
+
+Site du projet : <https://plugin.usecockpit.co/google-multi/>
+
 ## Outils exposés
 
 | Outil | Rôle | `all` accepté |
@@ -47,10 +51,10 @@ Un seul client OAuth sert pour tous tes comptes.
 mkdir -p ~/.config/google-multi-mcp && mv ~/Downloads/client_secret_*.json ~/.config/google-multi-mcp/client_secret.json && chmod 600 ~/.config/google-multi-mcp/client_secret.json
 ```
 
-### 2. Compiler
+### 2. Récupérer et compiler
 
 ```bash
-cd ~/mcp-servers/google-multi && npm install && npm run build
+git clone https://github.com/dathims/google-multi-mcp.git && cd google-multi-mcp && npm install && npm run build
 ```
 
 ### 3. Ajouter tes comptes
@@ -125,3 +129,9 @@ entrées qui pointent vers le même serveur avec un filtre :
 - Drive en **lecture seule** ; Gmail sans suppression définitive (scope `gmail.modify`).
 - Les écritures (envoi, agenda) exigent toujours un compte explicite : `all` est refusé.
 - Révocation côté Google : <https://myaccount.google.com/permissions>.
+
+## Licence
+
+[MIT](LICENSE), © 2026 OXYGENE NUMERIQUE. Google, Gmail, Google Agenda et Google Drive sont des marques de Google LLC ; Claude est une marque d'Anthropic PBC. Ce projet indépendant n'est ni affilié ni approuvé par Google ou Anthropic.
+
+Confidentialité : <https://plugin.usecockpit.co/privacy/>

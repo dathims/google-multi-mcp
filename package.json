@@ -2,6 +2,25 @@
   "name": "google-multi-mcp",
   "version": "1.0.0",
   "description": "Serveur MCP local donnant à Claude l'accès à plusieurs comptes Gmail, Google Calendar et Google Drive",
+  "license": "MIT",
+  "author": "OXYGENE NUMERIQUE (https://usecockpit.co)",
+  "homepage": "https://plugin.usecockpit.co/google-multi/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dathims/google-multi-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dathims/google-multi-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "gmail",
+    "google-calendar",
+    "google-drive",
+    "multi-account"
+  ],
   "type": "module",
   "private": true,
   "bin": {
