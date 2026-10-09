@@ -8,7 +8,7 @@ import { oauth2 as oauth2Api } from "@googleapis/oauth2";
 import { CodeChallengeMethod } from "google-auth-library";
 import { assertAlias, getClient, listStoredAccounts, newOAuthClient, readAccount, removeAccount, saveAccount } from "./auth.js";
 import { CONFIG_DIR, SCOPES } from "./config.js";
-import { PAGE_CSP, renderCallbackPage, type CallbackResult } from "./page.js";
+import { PAGE_CSP, renderCallbackPage, type CallbackResult, type ServiceStatus } from "./page.js";
 
 const [command, alias] = process.argv.slice(2);
 
@@ -98,10 +98,10 @@ async function addAccount(name: string | undefined) {
   }
 }
 
-const SERVICES = [
-  { name: "Gmail", detail: "Lire, rechercher, classer, rédiger et envoyer", scope: "https://www.googleapis.com/auth/gmail.modify" },
-  { name: "Google Agenda", detail: "Consulter et gérer les événements", scope: "https://www.googleapis.com/auth/calendar" },
-  { name: "Google Drive", detail: "Rechercher et lire les fichiers (lecture seule)", scope: "https://www.googleapis.com/auth/drive.readonly" },
+const SERVICES: (Omit<ServiceStatus, "granted"> & { scope: string })[] = [
+  { logo: "gmail", name: "Gmail", detail: "Lire, rechercher, classer, rédiger et envoyer", scope: "https://www.googleapis.com/auth/gmail.modify" },
+  { logo: "calendar", name: "Google Agenda", detail: "Consulter et gérer les événements", scope: "https://www.googleapis.com/auth/calendar" },
+  { logo: "drive", name: "Google Drive", detail: "Rechercher et lire les fichiers (lecture seule)", scope: "https://www.googleapis.com/auth/drive.readonly" },
 ];
 
 /** Envoie la page et attend qu'elle soit transmise (la CLI peut quitter juste après). */

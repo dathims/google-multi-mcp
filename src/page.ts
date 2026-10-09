@@ -1,7 +1,10 @@
 // Page affichée dans le navigateur à la fin du flux OAuth (add-account).
 // Identité visuelle reprise de useCockpit : papier, encre, accents jaune/bleu/corail.
 
+import { SERVICE_LOGOS, type ServiceLogo } from "./logos.js";
+
 export interface ServiceStatus {
+  logo: ServiceLogo;
   name: string;
   detail: string;
   granted: boolean;
@@ -40,9 +43,14 @@ h1{font-size:clamp(44px,8vw,72px);font-weight:500;line-height:1.02;letter-spacin
 .lead strong{color:var(--ink);font-weight:600}
 .alias{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.92em;background:#fff;border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--ink)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px 24px;margin-bottom:20px}
-.service{display:flex;align-items:center;gap:14px;padding:16px 0;border-top:1px solid var(--line)}
+.service{display:flex;align-items:center;gap:16px;padding:16px 0;border-top:1px solid var(--line)}
+.service .logo{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:#fff;border:1px solid var(--line)}
+.service .logo img{width:28px;height:28px;object-fit:contain}
+.service.missing .logo img{opacity:.45}
+.service .text{flex:1;min-width:0}
+.service .status{flex:none}
 .service:first-child{border-top:0}
-.service svg{flex:none}
+.service .status svg{display:block}
 .service b{font-weight:600;font-size:16px;display:block}
 .service span{font-size:14px;color:var(--muted)}
 .service.missing span{color:var(--coral)}
@@ -69,9 +77,9 @@ export function renderCallbackPage(r: CallbackResult): string {
 <section class="card" aria-label="Services autorisés">
 ${r.services
   .map(
-    (s) => `<div class="service${s.granted ? "" : " missing"}">${s.granted ? CHECK : CROSS}<div><b>${esc(s.name)}</b><span>${
+    (s) => `<div class="service${s.granted ? "" : " missing"}"><span class="logo"><img src="${SERVICE_LOGOS[s.logo]}" width="28" height="28" alt=""></span><div class="text"><b>${esc(s.name)}</b><span>${
       s.granted ? esc(s.detail) : "Autorisation non cochée : relance la commande et coche toutes les cases."
-    }</span></div></div>`,
+    }</span></div><span class="status" role="img" aria-label="${s.granted ? "Autorisé" : "Non autorisé"}">${s.granted ? CHECK : CROSS}</span></div>`,
   )
   .join("\n")}
 </section>
