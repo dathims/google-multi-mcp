@@ -1,5 +1,6 @@
 # Build
 dist/
+*.mcpb
 
 # Secrets and credentials
 .env

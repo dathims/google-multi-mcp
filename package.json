@@ -32,7 +32,8 @@
     "add-account": "node dist/cli.js add",
     "list-accounts": "node dist/cli.js list",
     "remove-account": "node dist/cli.js remove",
-    "check-accounts": "node dist/cli.js check"
+    "check-accounts": "node dist/cli.js check",
+    "bundle": "npm run build && npx --yes @anthropic-ai/mcpb@2.1.2 pack . google-multi.mcpb"
   },
   "engines": {
     "node": ">=20"

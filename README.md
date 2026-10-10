@@ -94,6 +94,11 @@ Then quit and restart Claude Desktop.
 claude mcp add google-multi -s user -- node /path/to/google-multi-mcp/dist/index.js
 ```
 
+**Claude Desktop, as an extension with its icon**: `npm run bundle` builds `google-multi.mcpb`.
+Double-click that file, or drop it into **Settings > Extensions**, then remove the `google-multi`
+entry from `claude_desktop_config.json` so the server is not loaded twice.
+Your accounts stay in `~/.config/google-multi-mcp/`.
+
 ### Variant: one connector per account
 
 To turn each account on or off separately in Claude's interface, declare several

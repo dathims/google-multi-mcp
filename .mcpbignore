@@ -1,0 +1,11 @@
+# Le paquet .mcpb n'embarque que le serveur compilé, ses dépendances, le manifest et l'icône.
+# Chaque règle est ancrée à la racine : un `src/` nu retirerait aussi le code des dépendances.
+/src/
+/.github/
+/.impeccable/
+/Dockerfile
+/.dockerignore
+/tsconfig.json
+/node_modules/typescript/
+/node_modules/@types/
+/*.mcpb
