@@ -3,7 +3,7 @@
   "name": "google-multi",
   "display_name": "Google Multi-Account",
   "version": "1.0.0",
-  "description": "Gmail, Google Agenda et Google Drive sur plusieurs comptes Google à la fois.",
+  "description": "Gmail, Google Calendar and Google Drive across several Google accounts at once.",
   "author": {
     "name": "OXYGENE NUMERIQUE",
     "url": "https://usecockpit.co"
@@ -29,55 +29,55 @@
   "tools": [
     {
       "name": "list_accounts",
-      "description": "Liste les comptes Google connectés (alias et email)."
+      "description": "Lists the connected Google accounts (alias and email)."
     },
     {
       "name": "gmail_search",
-      "description": "Recherche des emails avec la syntaxe Gmail (ex. \"from:alice is:unread newer_than:7d\"). account=\"all\" cherche dans toutes les boîtes."
+      "description": "Searches emails with Gmail syntax (e.g. \"from:alice is:unread newer_than:7d\"). account=\"all\" searches every mailbox."
     },
     {
       "name": "gmail_read",
-      "description": "Lit le contenu texte d'un message (message_id) ou de tout un fil de discussion (thread_id)."
+      "description": "Reads the text content of a message (message_id) or of a whole conversation thread (thread_id)."
     },
     {
       "name": "gmail_create_draft",
-      "description": "Crée un brouillon dans le compte choisi (rien n'est envoyé). Préférer cet outil à gmail_send quand l'utilisateur veut relire."
+      "description": "Creates a draft in the chosen account (nothing is sent). Prefer this tool over gmail_send when the user wants to review."
     },
     {
       "name": "gmail_send",
-      "description": "Envoie immédiatement un email depuis le compte choisi. Vérifier le compte expéditeur avec l'utilisateur avant d'appeler."
+      "description": "Sends an email right away from the chosen account. Check the sender account with the user before calling."
     },
     {
       "name": "gmail_modify_labels",
-      "description": "Ajoute ou retire des libellés. Libellés système : INBOX (retirer = archiver), UNREAD (retirer = marquer lu), STARRED, IMPORTANT, SPAM, TRASH. Les libellés perso sont acceptés par leur nom."
+      "description": "Adds or removes labels. System labels: INBOX (remove = archive), UNREAD (remove = mark as read), STARRED, IMPORTANT, SPAM, TRASH. Custom labels are accepted by name."
     },
     {
       "name": "calendar_list_calendars",
-      "description": "Liste les agendas (perso, partagés, abonnements) d'un ou de tous les comptes."
+      "description": "Lists the calendars (own, shared, subscribed) of one or all accounts."
     },
     {
       "name": "calendar_list_events",
-      "description": "Liste les événements sur une période (7 prochains jours par défaut). account=\"all\" fusionne les agendas de tous les comptes, triés par date : idéal pour voir les conflits."
+      "description": "Lists the events over a period (next 7 days by default). account=\"all\" merges the calendars of every account, sorted by date: ideal to spot conflicts."
     },
     {
       "name": "calendar_create_event",
-      "description": "Crée un événement dans l'agenda du compte choisi."
+      "description": "Creates an event in the calendar of the chosen account."
     },
     {
       "name": "calendar_update_event",
-      "description": "Modifie un événement existant : seuls les champs fournis changent."
+      "description": "Updates an existing event: only the provided fields change."
     },
     {
       "name": "calendar_delete_event",
-      "description": "Supprime (ou annule, si invités) un événement."
+      "description": "Deletes an event (or cancels it, if it has guests)."
     },
     {
       "name": "drive_search",
-      "description": "Recherche des fichiers Google Drive (y compris Drives partagés). Fournir query (texte libre, cherché dans le nom et le contenu) ou drive_query (syntaxe Drive brute, ex. \"mimeType = 'application/vnd.google-apps.spreadsheet' and modifiedTime > '2026-09-01'\"). account=\"all\" cherche partout."
+      "description": "Searches Google Drive files (shared drives included). Provide query (free text, searched in the name and the content) or drive_query (raw Drive syntax, e.g. \"mimeType = application/vnd.google-apps.spreadsheet and modifiedTime > 2026-09-01\"). account=\"all\" searches everywhere."
     },
     {
       "name": "drive_read_file",
-      "description": "Lit le contenu texte d'un fichier : Google Docs/Slides en texte, Google Sheets en CSV (première feuille), fichiers texte tels quels. Pour les PDF et binaires, renvoie seulement les métadonnées et le lien."
+      "description": "Reads the text content of a file: Google Docs/Slides as text, Google Sheets as CSV (first sheet), text files as is. For PDFs and binaries, only returns the metadata and the link."
     }
   ],
   "keywords": [
