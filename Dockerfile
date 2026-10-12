@@ -1,6 +1,6 @@
-# Image du serveur MCP google-multi.
-#   Serveur MCP (stdio) : docker run -i --rm -v ~/.config/google-multi-mcp:/config ghcr.io/dathims/google-multi-mcp
-#   Ajout d'un compte   : docker run -it --rm -p 127.0.0.1:8765:8765 -v ~/.config/google-multi-mcp:/config ghcr.io/dathims/google-multi-mcp add perso
+# Image of the google-multi MCP server.
+#   MCP server (stdio): docker run -i --rm -v ~/.config/google-multi-mcp:/config ghcr.io/dathims/google-multi-mcp
+#   Add an account    : docker run -it --rm -p 127.0.0.1:8765:8765 -v ~/.config/google-multi-mcp:/config ghcr.io/dathims/google-multi-mcp add perso
 
 FROM node:24-alpine AS build
 WORKDIR /app
@@ -18,9 +18,9 @@ LABEL org.opencontainers.image.title="google-multi-mcp" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.vendor="OXYGENE NUMERIQUE"
 
-# Identifiants et jetons vivent dans le volume /config, jamais dans l'image.
-# Pas de navigateur dans le conteneur : add-account affiche l'URL et écoute
-# sur un port fixe, à publier en 127.0.0.1 côté hôte.
+# Credentials and tokens live in the /config volume, never in the image.
+# No browser in the container: add-account prints the URL and listens
+# on a fixed port, to be published on 127.0.0.1 on the host side.
 ENV NODE_ENV=production \
     GOOGLE_MULTI_MCP_DIR=/config \
     GOOGLE_MULTI_MCP_NO_BROWSER=1 \

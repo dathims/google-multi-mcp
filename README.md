@@ -1,127 +1,125 @@
 # google-multi-mcp
 
-Serveur MCP local qui donne à Claude l'accès à **plusieurs comptes Google** en même temps :
-Gmail, Google Agenda et Google Drive. Les connecteurs intégrés de Claude ne gèrent qu'un compte
-chacun ; ici, chaque outil prend un paramètre `account` (`perso`, `pro`, une adresse email, ou
-`all` pour les lectures).
+A local MCP server that gives Claude access to **several Google accounts** at the same time:
+Gmail, Google Calendar and Google Drive. Claude's built-in connectors handle one account
+each; here, every tool takes an `account` parameter (`perso`, `work`, an email address, or
+`all` for reads).
 
-Les jetons restent sur ta machine dans `~/.config/google-multi-mcp/` (droits `600`), jamais dans ce dépôt.
+Tokens stay on your machine in `~/.config/google-multi-mcp/` (mode `600`), never in this repository.
 
-> **English:** a local MCP server giving Claude access to several Google accounts at once (Gmail, Google Calendar, Google Drive). Runs on your machine with your own OAuth client. Documentation: <https://plugin.usecockpit.co/google-multi/>
+Project page: <https://plugin.usecockpit.co/google-multi/>
 
-Site du projet : <https://plugin.usecockpit.co/google-multi/>
+## Tools
 
-## Outils exposés
-
-| Outil | Rôle | `all` accepté |
+| Tool | What it does | `all` accepted |
 |---|---|---|
-| `list_accounts` | Comptes connectés | |
-| `gmail_search` | Recherche (syntaxe Gmail) | oui |
-| `gmail_read` | Lire un message ou un fil | |
-| `gmail_create_draft` | Créer un brouillon (nouveau ou réponse) | |
-| `gmail_send` | Envoyer (nouveau ou réponse) | |
-| `gmail_modify_labels` | Archiver, marquer lu, étiqueter | |
-| `calendar_list_calendars` | Lister les agendas | oui |
-| `calendar_list_events` | Agenda sur une période (fusionné si `all`) | oui |
-| `calendar_create_event` / `calendar_update_event` / `calendar_delete_event` | Gérer les événements | |
-| `drive_search` | Recherche plein texte ou requête Drive | oui |
-| `drive_read_file` | Lire Docs, Sheets (CSV), Slides, fichiers texte | |
+| `list_accounts` | Connected accounts | |
+| `gmail_search` | Search (Gmail syntax) | yes |
+| `gmail_read` | Read a message or a thread | |
+| `gmail_create_draft` | Create a draft (new or reply) | |
+| `gmail_send` | Send (new or reply) | |
+| `gmail_modify_labels` | Archive, mark as read, label | |
+| `calendar_list_calendars` | List calendars | yes |
+| `calendar_list_events` | Agenda over a period (merged with `all`) | yes |
+| `calendar_create_event` / `calendar_update_event` / `calendar_delete_event` | Manage events | |
+| `drive_search` | Full text search or Drive query | yes |
+| `drive_read_file` | Read Docs, Sheets (CSV), Slides, text files | |
 
 ## Installation
 
-### 1. Créer le client OAuth Google (une seule fois, environ 10 minutes)
+### 1. Create the Google OAuth client (once, about 10 minutes)
 
-Un seul client OAuth sert pour tous tes comptes.
+A single OAuth client serves all your accounts.
 
-1. Ouvre <https://console.cloud.google.com/projectcreate> et crée un projet, par exemple `claude-google-multi`.
-2. Active les trois API dans ce projet :
+1. Open <https://console.cloud.google.com/projectcreate> and create a project, for example `claude-google-multi`.
+2. Enable the three APIs in this project:
    - <https://console.cloud.google.com/apis/library/gmail.googleapis.com>
    - <https://console.cloud.google.com/apis/library/calendar-json.googleapis.com>
    - <https://console.cloud.google.com/apis/library/drive.googleapis.com>
-3. Va dans **Google Auth Platform** (<https://console.cloud.google.com/auth/overview>) et configure l'écran de consentement :
-   type d'audience **Externe**, nom de l'appli, ton email de contact.
-4. Onglet **Audience** : clique sur **Publier l'application** (passage en *Production*).
-   C'est important : en mode *Test*, Google fait expirer les autorisations **tous les 7 jours**.
-   L'appli restera « non validée » : c'est sans conséquence pour un usage personnel (moins de 100 utilisateurs),
-   tu verras simplement un avertissement à la connexion.
-5. Onglet **Clients** : **Créer un client** > type **Application de bureau** > **Créer**, puis télécharge le JSON.
-6. Range ce fichier :
+3. Go to **Google Auth Platform** (<https://console.cloud.google.com/auth/overview>) and configure the consent screen:
+   audience type **External**, the app name, your contact email.
+4. **Audience** tab: click **Publish app** (this switches it to *In production*).
+   This matters: in *Testing* mode, Google makes the authorizations expire **every 7 days**.
+   The app stays "unverified": this has no consequence for personal use (fewer than 100 users),
+   you simply see a warning when you sign in.
+5. **Clients** tab: **Create client** > type **Desktop app** > **Create**, then download the JSON.
+6. Put this file in place:
 
 ```bash
 mkdir -p ~/.config/google-multi-mcp && mv ~/Downloads/client_secret_*.json ~/.config/google-multi-mcp/client_secret.json && chmod 600 ~/.config/google-multi-mcp/client_secret.json
 ```
 
-### 2. Récupérer et compiler
+### 2. Get the code and build it
 
 ```bash
 git clone https://github.com/dathims/google-multi-mcp.git && cd google-multi-mcp && npm install && npm run build
 ```
 
-### 3. Ajouter tes comptes
+### 3. Add your accounts
 
-Une commande par compte. Le navigateur s'ouvre : choisis le bon compte Google, puis
-« Paramètres avancés » > « Accéder à ... (non sécurisé) » et coche toutes les autorisations.
+One command per account. The browser opens: pick the right Google account, then
+"Advanced" > "Go to ... (unsafe)" and check every permission.
 
 ```bash
 npm run add-account -- perso
 ```
 
 ```bash
-npm run add-account -- pro
+npm run add-account -- work
 ```
 
-Autres commandes : `npm run list-accounts`, `npm run check-accounts`, `npm run remove-account -- <alias>`.
-Un compte ajouté est visible immédiatement par Claude, sans redémarrage.
+Other commands: `npm run list-accounts`, `npm run check-accounts`, `npm run remove-account -- <alias>`.
+An account you add is visible to Claude right away, with no restart.
 
-### 4. Brancher dans Claude
+### 4. Connect it to Claude
 
-**Claude Desktop** (onglet Chat et Cowork), dans `~/Library/Application Support/Claude/claude_desktop_config.json` :
+**Claude Desktop** (Chat and Cowork tabs), in `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "google-multi": {
-      "command": "/chemin/vers/node",
-      "args": ["/Users/<toi>/mcp-servers/google-multi/dist/index.js"]
+      "command": "/path/to/node",
+      "args": ["/path/to/google-multi-mcp/dist/index.js"]
     }
   }
 }
 ```
 
-Puis quitte et relance Claude Desktop.
+Then quit and restart Claude Desktop.
 
-**Claude Code** :
+**Claude Code**:
 
 ```bash
-claude mcp add google-multi -s user -- node ~/mcp-servers/google-multi/dist/index.js
+claude mcp add google-multi -s user -- node /path/to/google-multi-mcp/dist/index.js
 ```
 
-### Variante : un connecteur par compte
+### Variant: one connector per account
 
-Pour activer ou couper chaque compte séparément dans l'interface de Claude, déclare plusieurs
-entrées qui pointent vers le même serveur avec un filtre :
+To turn each account on or off separately in Claude's interface, declare several
+entries that point to the same server with a filter:
 
 ```json
 "google-perso": { "command": "node", "args": [".../dist/index.js", "--accounts=perso"] },
-"google-pro":   { "command": "node", "args": [".../dist/index.js", "--accounts=pro"] }
+"google-work":  { "command": "node", "args": [".../dist/index.js", "--accounts=work"] }
 ```
 
-## Avec Docker
+## With Docker
 
-Une image prête à l'emploi est publiée pour amd64 et arm64 : `ghcr.io/dathims/google-multi-mcp`.
-Pas besoin de Node.js ni de cloner le dépôt. Seule l'étape 1 (client OAuth Google) reste nécessaire.
+A ready-made image is published for amd64 and arm64: `ghcr.io/dathims/google-multi-mcp`.
+No need for Node.js or for cloning the repository. Only step 1 (the Google OAuth client) is still required.
 
-**Ajouter un compte.** Le navigateur ne peut pas s'ouvrir depuis le conteneur : copie l'URL affichée.
-Le port 8765 est publié uniquement sur `127.0.0.1` pour recevoir la réponse de Google.
+**Add an account.** The browser cannot open from the container: copy the URL it prints.
+Port 8765 is published on `127.0.0.1` only, to receive Google's response.
 
 ```bash
 docker run -it --rm -p 127.0.0.1:8765:8765 -v ~/.config/google-multi-mcp:/config ghcr.io/dathims/google-multi-mcp add perso
 ```
 
-Autres commandes : `list`, `check`, `remove <alias>` à la place de `add perso`.
+Other commands: `list`, `check`, `remove <alias>` in place of `add perso`.
 
-**Brancher l'agent.** Même format pour Claude Desktop, Cursor et Gemini CLI. Remplace le chemin par le tien
-et `TZ` par ton fuseau : sans lui, le conteneur est en UTC et les heures des événements seraient décalées.
+**Connect the agent.** Same format for Claude Desktop, Cursor and Gemini CLI. Replace the path with yours
+and `TZ` with your time zone: without it, the container runs in UTC and event times would shift.
 
 ```json
 {
@@ -129,41 +127,41 @@ et `TZ` par ton fuseau : sans lui, le conteneur est en UTC et les heures des év
     "google-multi": {
       "command": "docker",
       "args": ["run", "-i", "--rm", "-e", "TZ=Europe/Paris",
-               "-v", "/Users/<toi>/.config/google-multi-mcp:/config",
+               "-v", "/Users/<you>/.config/google-multi-mcp:/config",
                "ghcr.io/dathims/google-multi-mcp"]
     }
   }
 }
 ```
 
-Sous Linux, ajoute `"--user", "<uid>:<gid>"` (valeurs de `id -u` et `id -g`) pour que le conteneur puisse lire les fichiers en `600`. Inutile sur macOS avec Docker Desktop.
+On Linux, add `"--user", "<uid>:<gid>"` (the values of `id -u` and `id -g`) so the container can read the files in mode `600`. Not needed on macOS with Docker Desktop.
 
-## Exemples de demandes à Claude
+## Examples of what to ask Claude
 
-- « Résume mes mails non lus de cette semaine sur tous mes comptes. »
-- « Montre mon agenda de demain, perso et pro fusionnés, et signale les conflits. »
-- « Prépare un brouillon de réponse au dernier mail de Julie depuis mon compte pro. »
-- « Cherche le devis "toiture" dans tous mes Drive et résume-le. »
+- "Summarize my unread mail from this week on all my accounts."
+- "Show my agenda for tomorrow, perso and work merged, and flag the conflicts."
+- "Prepare a draft reply to Julie's last email from my work account."
+- "Find the "roof" quote in all my Drives and summarize it."
 
-## Dépannage
+## Troubleshooting
 
-| Symptôme | Cause et solution |
+| Symptom | Cause and fix |
 |---|---|
-| `invalid_grant` | Autorisation expirée ou révoquée. Relance `npm run add-account -- <alias>`. Si ça revient tous les 7 jours, l'appli est encore en mode Test (étape 1.4). |
-| « Accès bloqué : cette appli n'est pas validée » sur un compte pro | L'administrateur Google Workspace bloque les applis tierces non validées. Demande-lui d'autoriser l'ID client, ou crée le projet Google Cloud dans l'organisation Workspace. |
-| `Fichier OAuth introuvable` | Le fichier de l'étape 1.6 manque ou est mal placé. |
-| Un outil échoue sur un seul compte | Une autorisation n'a pas été cochée lors de la connexion : ré-ajoute le compte. |
+| `invalid_grant` | Authorization expired or revoked. Run `npm run add-account -- <alias>` again. If it comes back every 7 days, the app is still in Testing mode (step 1.4). |
+| "Access blocked" on a work account | The Google Workspace administrator blocks unverified third-party apps. Ask them to allow the client ID, or create the Google Cloud project inside the Workspace organization. |
+| `OAuth client file not found` | The file from step 1.6 is missing or in the wrong place. |
+| A tool fails on a single account | A permission was left unchecked during sign-in: add the account again. |
 
-## Sécurité
+## Security
 
-- Jetons stockés localement, fichiers en `600`, dossier en `700`.
-- Connexion OAuth avec PKCE et vérification du paramètre `state`.
-- Drive en **lecture seule** ; Gmail sans suppression définitive (scope `gmail.modify`).
-- Les écritures (envoi, agenda) exigent toujours un compte explicite : `all` est refusé.
-- Révocation côté Google : <https://myaccount.google.com/permissions>.
+- Tokens stored locally, files in mode `600`, folder in mode `700`.
+- OAuth sign-in with PKCE and a check of the `state` parameter.
+- Drive is **read only**; Gmail has no permanent deletion (`gmail.modify` scope).
+- Writes (sending, calendar) always require an explicit account: `all` is refused.
+- Revocation on the Google side: <https://myaccount.google.com/permissions>.
 
-## Licence
+## License
 
-[MIT](LICENSE), © 2026 OXYGENE NUMERIQUE. Google, Gmail, Google Agenda et Google Drive sont des marques de Google LLC ; Claude est une marque d'Anthropic PBC. Ce projet indépendant n'est ni affilié ni approuvé par Google ou Anthropic.
+[MIT](LICENSE), © 2026 OXYGENE NUMERIQUE. Google, Gmail, Google Calendar and Google Drive are trademarks of Google LLC; Claude is a trademark of Anthropic PBC. This independent project is not affiliated with or endorsed by Google or Anthropic.
 
-Confidentialité : <https://plugin.usecockpit.co/privacy/>
+Privacy: <https://plugin.usecockpit.co/privacy/>

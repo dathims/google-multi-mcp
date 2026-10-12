@@ -1,8 +1,8 @@
 import os from "node:os";
 import path from "node:path";
 
-// Les identifiants OAuth et les jetons des comptes vivent hors du dépôt,
-// dans un dossier lisible uniquement par l'utilisateur.
+// OAuth credentials and account tokens live outside the repository,
+// in a folder only the user can read.
 export const CONFIG_DIR =
   process.env.GOOGLE_MULTI_MCP_DIR ?? path.join(os.homedir(), ".config", "google-multi-mcp");
 
@@ -12,7 +12,7 @@ export const ACCOUNTS_DIR = path.join(CONFIG_DIR, "accounts");
 export const SCOPES = [
   "openid",
   "email",
-  // Lire, classer, créer des brouillons et envoyer (pas de suppression définitive).
+  // Read, label, draft and send (no permanent deletion).
   "https://www.googleapis.com/auth/gmail.modify",
   "https://www.googleapis.com/auth/calendar",
   "https://www.googleapis.com/auth/drive.readonly",

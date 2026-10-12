@@ -10,7 +10,7 @@ const calendar = (alias: string) => calendarApi({ version: "v3", auth: getClient
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
-/** "2026-10-12" = journée entière ; "2026-10-12T14:00:00" = heure locale dans time_zone. */
+/** "2026-10-12" = all-day; "2026-10-12T14:00:00" = local time in time_zone. */
 function eventTime(value: string, timeZone: string): calendar_v3.Schema$EventDateTime {
   return DATE_ONLY.test(value) ? { date: value } : { dateTime: value, timeZone };
 }
@@ -167,7 +167,7 @@ export function registerCalendarTools(server: McpServer) {
     },
     safe(async ({ account, calendar_id, event_id, send_updates, ...input }) => {
       const [alias] = resolveAccounts(account, { allowAll: false });
-      // Supprime les clés undefined pour qu'un patch ne vide pas les champs non fournis.
+      // Drops the undefined keys so that a patch does not clear the fields left out.
       const requestBody = JSON.parse(JSON.stringify(eventBody(input)));
       const { data } = await calendar(alias).events.patch({
         calendarId: calendar_id,

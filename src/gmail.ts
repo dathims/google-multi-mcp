@@ -74,7 +74,7 @@ interface Compose {
   reply_to_message_id?: string;
 }
 
-/** Construit le message RFC 2822 encodé en base64url attendu par l'API Gmail, avec gestion des réponses. */
+/** Builds the base64url-encoded RFC 2822 message the Gmail API expects, replies included. */
 async function buildMessage(alias: string, c: Compose): Promise<gmail_v1.Schema$Message> {
   let { to, subject } = c;
   let threadId: string | undefined;
@@ -87,8 +87,8 @@ async function buildMessage(alias: string, c: Compose): Promise<gmail_v1.Schema$
       format: "metadata",
       metadataHeaders: ["From", "Reply-To", "Subject", "Message-ID", "References"],
     });
-    // Ces en-têtes viennent d'un mail reçu, donc d'un tiers : on les déplie
-    // (suppression des CR/LF) avant de les recopier, pour bloquer toute injection.
+    // These headers come from a received email, so from a third party: they are unfolded
+    // (CR/LF stripped) before being copied, to block any injection.
     const h = data.payload?.headers;
     const original = (name: string) => header(h, name)?.replace(/[\r\n]+[ \t]*/g, " ").trim();
     const msgId = original("Message-ID");
@@ -114,7 +114,7 @@ async function buildMessage(alias: string, c: Compose): Promise<gmail_v1.Schema$
     'Content-Type: text/plain; charset="UTF-8"',
     "Content-Transfer-Encoding: base64",
   ].filter((l): l is string => Boolean(l));
-  // Dernier filet : aucune ligne d'en-tête ne doit pouvoir en créer une autre.
+  // Last safety net: no header line may be able to create another one.
   if (lines.some((l) => /[\r\n]/.test(l))) throw new Error("En-tête de message invalide (retour à la ligne).");
   const body = Buffer.from(c.body, "utf8").toString("base64").replace(/.{76}/g, "$&\r\n");
   const raw = Buffer.from(`${lines.join("\r\n")}\r\n\r\n${body}`, "utf8").toString("base64url");

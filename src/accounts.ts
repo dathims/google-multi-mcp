@@ -1,7 +1,7 @@
 import { listStoredAccounts, type StoredAccount } from "./auth.js";
 
-// Permet de lancer plusieurs instances restreintes à certains comptes, ex. :
-//   node dist/index.js --accounts=pro      ou   GOOGLE_MCP_ACCOUNTS=perso,asso
+// Lets several instances run, each restricted to some accounts, e.g.:
+//   node dist/index.js --accounts=work     or   GOOGLE_MCP_ACCOUNTS=perso,club
 function accountFilter(): Set<string> | null {
   const arg = process.argv.find((a) => a.startsWith("--accounts="));
   const raw = arg?.slice("--accounts=".length) ?? process.env.GOOGLE_MCP_ACCOUNTS;
@@ -9,7 +9,7 @@ function accountFilter(): Set<string> | null {
   return new Set(raw.split(",").map((s) => s.trim()).filter(Boolean));
 }
 
-// Relu à chaque appel : un compte ajouté via la CLI est visible sans redémarrer Claude.
+// Read again on every call: an account added through the CLI shows up without restarting Claude.
 export function enabledAccounts(): StoredAccount[] {
   const filter = accountFilter();
   const all = listStoredAccounts();
@@ -17,14 +17,14 @@ export function enabledAccounts(): StoredAccount[] {
 }
 
 /**
- * Traduit le paramètre `account` d'un outil en liste d'alias à interroger.
+ * Turns the `account` parameter of a tool into the list of aliases to query.
  *
- * Choix de conception :
- * - paramètre omis + un seul compte : on l'utilise ;
- * - paramètre omis + plusieurs comptes : erreur explicite, pour que Claude
- *   n'envoie jamais un mail ou ne crée jamais un événement depuis le mauvais compte ;
- * - "all" n'est accepté que pour les lectures (recherche, agenda) ;
- * - on accepte l'alias ou l'adresse email complète.
+ * Design choices:
+ * - parameter omitted + a single account: use it;
+ * - parameter omitted + several accounts: explicit error, so that Claude never
+ *   sends an email or creates an event from the wrong account;
+ * - "all" is only accepted for reads (search, agenda);
+ * - the alias and the full email address are both accepted.
  */
 export function resolveAccounts(requested: string | undefined, opts: { allowAll: boolean }): string[] {
   const accounts = enabledAccounts();
@@ -55,7 +55,7 @@ export interface AccountResult<T> {
   error?: string;
 }
 
-/** Exécute `fn` sur chaque compte en parallèle ; un compte en erreur n'empêche pas les autres. */
+/** Runs `fn` on every account in parallel; a failing account does not block the others. */
 export async function runOnAccounts<T>(aliases: string[], fn: (alias: string) => Promise<T>): Promise<AccountResult<T>[]> {
   const emails = new Map(enabledAccounts().map((a) => [a.alias, a.email]));
   const settled = await Promise.allSettled(aliases.map(fn));
@@ -66,7 +66,7 @@ export async function runOnAccounts<T>(aliases: string[], fn: (alias: string) =>
       ? { account, email, result: s.value }
       : { account, email, error: s.reason instanceof Error ? s.reason.message : String(s.reason) };
   });
-  // Un seul compte demandé : on remonte l'erreur telle quelle plutôt qu'un tableau.
+  // A single account requested: surface the error as is rather than an array.
   if (aliases.length === 1 && results[0].error) throw new Error(`[${aliases[0]}] ${results[0].error}`);
   return results;
 }

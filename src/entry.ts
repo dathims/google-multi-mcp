@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Point d'entrée unique (utilisé par l'image Docker) :
-//   (aucun argument) ou --accounts=...  -> serveur MCP sur stdio
-//   add | list | check | remove [alias] -> CLI de gestion des comptes
+// Single entry point (used by the Docker image):
+//   (no argument) or --accounts=...     -> MCP server on stdio
+//   add | list | check | remove [alias] -> account management CLI
 const CLI_COMMANDS = new Set(["add", "list", "check", "remove"]);
 
 if (CLI_COMMANDS.has(process.argv[2] ?? "")) {

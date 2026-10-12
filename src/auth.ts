@@ -47,7 +47,7 @@ function accountFile(alias: string): string {
 export function saveAccount(account: StoredAccount): void {
   fs.mkdirSync(ACCOUNTS_DIR, { recursive: true, mode: 0o700 });
   const file = accountFile(account.alias);
-  // Écriture atomique : un crash pendant un rafraîchissement ne corrompt pas le fichier.
+  // Atomic write: a crash during a refresh does not corrupt the file.
   const tmp = `${file}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(account, null, 2), { mode: 0o600 });
   fs.renameSync(tmp, file);
@@ -87,8 +87,8 @@ export function getClient(alias: string): OAuth2Client {
 
   const client = newOAuthClient();
   client.setCredentials(account.credentials);
-  // Google renvoie un nouvel access token toutes les heures ; on le persiste
-  // sans perdre le refresh token (rarement renvoyé lors d'un rafraîchissement).
+  // Google returns a new access token every hour; it is persisted
+  // without losing the refresh token (rarely returned on a refresh).
   client.on("tokens", (fresh) => {
     const current = readAccount(alias);
     if (!current) return;

@@ -1,5 +1,5 @@
-// Page affichée dans le navigateur à la fin du flux OAuth (add-account).
-// Identité visuelle reprise de useCockpit : papier, encre, accents jaune/bleu/corail.
+// Page shown in the browser at the end of the OAuth flow (add-account).
+// Visual identity taken from useCockpit: paper, ink, yellow/blue/coral accents.
 
 import { SERVICE_LOGOS, type ServiceLogo } from "./logos.js";
 
@@ -14,11 +14,11 @@ export type CallbackResult =
   | { ok: true; alias: string; email: string; services: ServiceStatus[] }
   | { ok: false; alias: string; message: string };
 
-// Les valeurs affichées viennent en partie de l'URL de retour : tout est échappé.
+// Some of the displayed values come from the callback URL: everything is escaped.
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-// Content-Security-Policy envoyée avec la page : aucun script, aucune ressource externe.
+// Content-Security-Policy sent with the page: no script, no external resource.
 export const PAGE_CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'";
 
 const MARK = `<svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="15" fill="#f1efe9"/><path d="M10 32h44M10 23v18" fill="none" stroke="#efb900" stroke-width="8"/><circle cx="32" cy="32" r="13" fill="#fff" stroke="#3a3331" stroke-width="7"/></svg>`;

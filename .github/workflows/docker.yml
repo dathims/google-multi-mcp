@@ -1,4 +1,4 @@
-# Compile le serveur, puis publie l'image multi-architecture sur ghcr.io.
+# Builds the server, then publishes the multi-architecture image to ghcr.io.
 name: Docker
 
 on:

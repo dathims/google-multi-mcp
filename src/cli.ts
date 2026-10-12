@@ -12,8 +12,8 @@ import { PAGE_CSP, renderCallbackPage, type CallbackResult, type ServiceStatus }
 
 const [command, alias] = process.argv.slice(2);
 
-// En conteneur, Google doit rediriger vers un port publié sur l'hôte : on fixe le port
-// et on écoute sur toutes les interfaces du conteneur (publié en 127.0.0.1 côté hôte).
+// In a container, Google must redirect to a port published on the host: the port is fixed
+// and the server listens on every container interface (published on 127.0.0.1 on the host side).
 const OAUTH_PORT = Number(process.env.GOOGLE_MULTI_MCP_OAUTH_PORT ?? 0);
 const OAUTH_HOST = process.env.GOOGLE_MULTI_MCP_OAUTH_HOST ?? "127.0.0.1";
 const NO_BROWSER = Boolean(process.env.GOOGLE_MULTI_MCP_NO_BROWSER);
@@ -22,12 +22,12 @@ function openBrowser(url: string) {
   if (NO_BROWSER) return;
   const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer" : "xdg-open";
   const child = spawn(cmd, [url], { stdio: "ignore", detached: true });
-  // Pas de navigateur disponible (conteneur, serveur distant) : l'URL affichée suffit.
+  // No browser available (container, remote server): the printed URL is enough.
   child.on("error", () => {});
   child.unref();
 }
 
-/** Flux OAuth "loopback" avec PKCE : Google redirige vers un mini serveur HTTP local éphémère. */
+/** OAuth "loopback" flow with PKCE: Google redirects to a short-lived local HTTP server. */
 async function addAccount(name: string | undefined) {
   assertAlias(name);
   if (readAccount(name)) console.log(`Le compte "${name}" existe déjà : il va être ré-autorisé.`);
@@ -44,7 +44,7 @@ async function addAccount(name: string | undefined) {
   const state = crypto.randomBytes(16).toString("hex");
   const url = client.generateAuthUrl({
     access_type: "offline",
-    // consent : force l'émission d'un refresh token ; select_account : choisir le bon compte Google.
+    // consent: forces a refresh token to be issued; select_account: lets the user pick the right Google account.
     prompt: "consent select_account",
     scope: SCOPES,
     state,
@@ -56,8 +56,8 @@ async function addAccount(name: string | undefined) {
   console.log(`${NO_BROWSER ? "Ouvre" : "Si rien ne s'ouvre, colle"} cette URL dans ton navigateur :\n${url}\n`);
   openBrowser(url);
 
-  // On garde la réponse HTTP en attente : la page n'est rendue qu'une fois
-  // l'échange de jetons terminé, pour afficher le vrai résultat.
+  // The HTTP response is held open: the page is only rendered once
+  // the token exchange is done, so that it shows the real outcome.
   const { code, res } = await new Promise<{ code: string; res: http.ServerResponse }>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("Délai dépassé (5 minutes).")), 5 * 60_000);
     server.on("request", (req, res) => {
@@ -104,7 +104,7 @@ const SERVICES: (Omit<ServiceStatus, "granted"> & { scope: string })[] = [
   { logo: "drive", name: "Google Drive", detail: "Rechercher et lire les fichiers (lecture seule)", scope: "https://www.googleapis.com/auth/drive.readonly" },
 ];
 
-/** Envoie la page et attend qu'elle soit transmise (la CLI peut quitter juste après). */
+/** Sends the page and waits until it is flushed (the CLI may exit right after). */
 function sendPage(res: http.ServerResponse, result: CallbackResult): Promise<void> {
   return new Promise((resolve) => {
     res.on("finish", resolve);

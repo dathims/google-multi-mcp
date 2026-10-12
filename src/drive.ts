@@ -7,7 +7,7 @@ import { safe, truncate } from "./util.js";
 
 const drive = (alias: string) => driveApi({ version: "v3", auth: getClient(alias) });
 
-// Formats Google natifs : on les exporte en texte pour que Claude puisse les lire.
+// Native Google formats: exported as text so that Claude can read them.
 const EXPORTS: Record<string, string> = {
   "application/vnd.google-apps.document": "text/plain",
   "application/vnd.google-apps.spreadsheet": "text/csv",
@@ -48,7 +48,7 @@ export function registerDriveTools(server: McpServer) {
           corpora: "allDrives",
           includeItemsFromAllDrives: true,
           supportsAllDrives: true,
-          // fullText ne supporte pas orderBy ; sinon on trie par date de modification.
+          // fullText does not support orderBy; otherwise results are sorted by modification date.
           orderBy: query && !drive_query ? undefined : "modifiedTime desc",
           fields: "files(id,name,mimeType,modifiedTime,webViewLink,size,owners(emailAddress))",
         });

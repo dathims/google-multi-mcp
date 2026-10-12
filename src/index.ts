@@ -33,5 +33,5 @@ registerCalendarTools(server);
 registerDriveTools(server);
 
 await server.connect(new StdioServerTransport());
-// stdout est réservé au protocole MCP : les logs vont sur stderr.
+// stdout is reserved for the MCP protocol: logs go to stderr.
 console.error(`google-multi prêt, comptes : ${enabledAccounts().map((a) => a.alias).join(", ") || "aucun"}`);

@@ -18,7 +18,7 @@ export function fail(err: unknown): CallToolResult {
   return { content: [{ type: "text", text: `Erreur : ${message}${hint}` }], isError: true };
 }
 
-/** Enveloppe un handler d'outil pour transformer toute exception en résultat isError lisible par Claude. */
+/** Wraps a tool handler so that any exception becomes an isError result Claude can read. */
 export function safe<A>(handler: (args: A) => Promise<unknown>) {
   return async (args: A): Promise<CallToolResult> => {
     try {
@@ -35,6 +35,6 @@ export function truncate(text: string, max: number): string {
 }
 
 export function rejectNewlines(field: string, value: string | undefined): void {
-  // Empêche l'injection d'en-têtes dans les mails construits à la main.
+  // Prevents header injection in hand-built emails.
   if (value && /[\r\n]/.test(value)) throw new Error(`Le champ ${field} ne doit pas contenir de retour à la ligne.`);
 }
