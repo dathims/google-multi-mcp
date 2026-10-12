@@ -3,6 +3,7 @@
 /src/
 /.github/
 /.impeccable/
+/docs/
 /Dockerfile
 /.dockerignore
 /tsconfig.json
