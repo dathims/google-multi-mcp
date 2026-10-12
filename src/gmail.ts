@@ -36,7 +36,7 @@ function extractBody(payload: gmail_v1.Schema$MessagePart | undefined) {
   const walk = (part?: gmail_v1.Schema$MessagePart) => {
     if (!part) return;
     if (part.filename) {
-      attachments.push(`${part.filename} (${part.mimeType}, ${part.body?.size ?? 0} o)`);
+      attachments.push(`${part.filename} (${part.mimeType}, ${part.body?.size ?? 0} bytes)`);
     } else if (part.mimeType === "text/plain") {
       plain.push(decode(part.body?.data));
     } else if (part.mimeType === "text/html") {
@@ -101,7 +101,7 @@ async function buildMessage(alias: string, c: Compose): Promise<gmail_v1.Schema$
     }
   }
 
-  if (!to) throw new Error("Destinataire manquant (to).");
+  if (!to) throw new Error("Missing recipient (to).");
   for (const [k, v] of Object.entries({ to, cc: c.cc, bcc: c.bcc, subject })) rejectNewlines(k, v);
 
   const lines = [
@@ -115,7 +115,7 @@ async function buildMessage(alias: string, c: Compose): Promise<gmail_v1.Schema$
     "Content-Transfer-Encoding: base64",
   ].filter((l): l is string => Boolean(l));
   // Last safety net: no header line may be able to create another one.
-  if (lines.some((l) => /[\r\n]/.test(l))) throw new Error("En-tête de message invalide (retour à la ligne).");
+  if (lines.some((l) => /[\r\n]/.test(l))) throw new Error("Invalid message header (line break).");
   const body = Buffer.from(c.body, "utf8").toString("base64").replace(/.{76}/g, "$&\r\n");
   const raw = Buffer.from(`${lines.join("\r\n")}\r\n\r\n${body}`, "utf8").toString("base64url");
   return { raw, threadId };
@@ -123,12 +123,12 @@ async function buildMessage(alias: string, c: Compose): Promise<gmail_v1.Schema$
 
 const composeShape = (accountDesc: string) => ({
   account: z.string().optional().describe(accountDesc),
-  to: z.string().optional().describe("Destinataires séparés par des virgules. Facultatif en réponse (reprend l'expéditeur)."),
+  to: z.string().optional().describe("Comma-separated recipients. Optional in a reply (reuses the sender)."),
   cc: z.string().optional(),
   bcc: z.string().optional(),
-  subject: z.string().optional().describe('Objet. Facultatif en réponse ("Re: ..." automatique).'),
-  body: z.string().describe("Corps du message en texte brut."),
-  reply_to_message_id: z.string().optional().describe("ID du message auquel répondre (garde le fil de discussion)."),
+  subject: z.string().optional().describe('Subject. Optional in a reply ("Re: ..." is set automatically).'),
+  body: z.string().describe("Message body in plain text."),
+  reply_to_message_id: z.string().optional().describe("ID of the message to reply to (keeps the conversation thread)."),
 });
 
 export function registerGmailTools(server: McpServer) {
@@ -138,13 +138,13 @@ export function registerGmailTools(server: McpServer) {
   server.registerTool(
     "gmail_search",
     {
-      title: "Rechercher des emails",
+      title: "Search emails",
       description:
-        'Recherche des emails avec la syntaxe Gmail (ex. "from:alice is:unread newer_than:7d"). account="all" cherche dans toutes les boîtes.',
+        'Searches emails with Gmail syntax (e.g. "from:alice is:unread newer_than:7d"). account="all" searches every mailbox.',
       inputSchema: {
         account: z.string().optional().describe(readAccount),
-        query: z.string().default("in:inbox").describe("Requête Gmail."),
-        max_results: z.number().int().min(1).max(50).default(10).describe("Par compte."),
+        query: z.string().default("in:inbox").describe("Gmail query."),
+        max_results: z.number().int().min(1).max(50).default(10).describe("Per account."),
       },
       annotations: { readOnlyHint: true },
     },
@@ -170,8 +170,8 @@ export function registerGmailTools(server: McpServer) {
   server.registerTool(
     "gmail_read",
     {
-      title: "Lire un email ou un fil",
-      description: "Lit le contenu texte d'un message (message_id) ou de tout un fil de discussion (thread_id).",
+      title: "Read an email or a thread",
+      description: "Reads the text content of a message (message_id) or of a whole conversation thread (thread_id).",
       inputSchema: {
         account: z.string().optional().describe(writeAccount),
         message_id: z.string().optional(),
@@ -183,7 +183,7 @@ export function registerGmailTools(server: McpServer) {
     safe(async ({ account, message_id, thread_id, max_chars }) => {
       const [alias] = resolveAccounts(account, { allowAll: false });
       const g = gmail(alias);
-      if (!message_id && !thread_id) throw new Error("Fournis message_id ou thread_id.");
+      if (!message_id && !thread_id) throw new Error("Provide message_id or thread_id.");
       const messages = thread_id
         ? ((await g.users.threads.get({ userId: "me", id: thread_id, format: "full" })).data.messages ?? [])
         : [(await g.users.messages.get({ userId: "me", id: message_id!, format: "full" })).data];
@@ -201,8 +201,8 @@ export function registerGmailTools(server: McpServer) {
   server.registerTool(
     "gmail_create_draft",
     {
-      title: "Créer un brouillon",
-      description: "Crée un brouillon dans le compte choisi (rien n'est envoyé). Préférer cet outil à gmail_send quand l'utilisateur veut relire.",
+      title: "Create a draft",
+      description: "Creates a draft in the chosen account (nothing is sent). Prefer this tool over gmail_send when the user wants to review.",
       inputSchema: composeShape(writeAccount),
     },
     safe(async ({ account, ...compose }) => {
@@ -217,8 +217,8 @@ export function registerGmailTools(server: McpServer) {
   server.registerTool(
     "gmail_send",
     {
-      title: "Envoyer un email",
-      description: "Envoie immédiatement un email depuis le compte choisi. Vérifier le compte expéditeur avec l'utilisateur avant d'appeler.",
+      title: "Send an email",
+      description: "Sends an email right away from the chosen account. Check the sender account with the user before calling.",
       inputSchema: composeShape(writeAccount),
       annotations: { destructiveHint: true, openWorldHint: true },
     },
@@ -233,9 +233,9 @@ export function registerGmailTools(server: McpServer) {
   server.registerTool(
     "gmail_modify_labels",
     {
-      title: "Classer des emails",
+      title: "Label emails",
       description:
-        'Ajoute ou retire des libellés. Libellés système : INBOX (retirer = archiver), UNREAD (retirer = marquer lu), STARRED, IMPORTANT, SPAM, TRASH. Les libellés perso sont acceptés par leur nom.',
+        'Adds or removes labels. System labels: INBOX (remove = archive), UNREAD (remove = mark as read), STARRED, IMPORTANT, SPAM, TRASH. Custom labels are accepted by name.',
       inputSchema: {
         account: z.string().optional().describe(writeAccount),
         message_ids: z.array(z.string()).min(1).max(100),
@@ -249,7 +249,7 @@ export function registerGmailTools(server: McpServer) {
       const labels = (await g.users.labels.list({ userId: "me" })).data.labels ?? [];
       const toId = (name: string) => {
         const l = labels.find((x) => x.id === name || x.name?.toLowerCase() === name.toLowerCase());
-        if (!l?.id) throw new Error(`Libellé inconnu : ${name}`);
+        if (!l?.id) throw new Error(`Unknown label: ${name}`);
         return l.id;
       };
       await g.users.messages.batchModify({

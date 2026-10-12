@@ -71,44 +71,44 @@ export function renderCallbackPage(r: CallbackResult): string {
   const alias = esc(r.alias);
 
   const body = r.ok
-    ? `<p class="eyebrow">Connexion Google</p>
-<h1>Compte connecté.</h1>
-<p class="lead"><strong>${esc(r.email)}</strong> est maintenant disponible pour ton agent IA sous l'alias <span class="alias">${alias}</span>.</p>
-<section class="card" aria-label="Services autorisés">
+    ? `<p class="eyebrow">Google sign-in</p>
+<h1>Account connected.</h1>
+<p class="lead"><strong>${esc(r.email)}</strong> is now available to your AI agent under the alias <span class="alias">${alias}</span>.</p>
+<section class="card" aria-label="Authorized services">
 ${r.services
   .map(
     (s) => `<div class="service${s.granted ? "" : " missing"}"><span class="logo"><img src="${SERVICE_LOGOS[s.logo]}" width="28" height="28" alt=""></span><div class="text"><b>${esc(s.name)}</b><span>${
-      s.granted ? esc(s.detail) : "Autorisation non cochée : relance la commande et coche toutes les cases."
-    }</span></div><span class="status" role="img" aria-label="${s.granted ? "Autorisé" : "Non autorisé"}">${s.granted ? CHECK : CROSS}</span></div>`,
+      s.granted ? esc(s.detail) : "Permission left unchecked: run the command again and check every box."
+    }</span></div><span class="status" role="img" aria-label="${s.granted ? "Authorized" : "Not authorized"}">${s.granted ? CHECK : CROSS}</span></div>`,
   )
   .join("\n")}
 </section>
 <section class="card next">
-<h2>Ajouter un autre compte</h2>
-<p>Chaque compte Google a son alias. Il est utilisable tout de suite dans ton agent, sans redémarrage.</p>
-<pre><span class="p">$ </span>npm run add-account -- pro</pre>
+<h2>Add another account</h2>
+<p>Each Google account has its own alias. It is usable right away in your agent, with no restart.</p>
+<pre><span class="p">$ </span>npm run add-account -- work</pre>
 </section>
-<p class="close">Tu peux fermer cet onglet <kbd>⌘ W</kbd></p>`
-    : `<p class="eyebrow">Connexion Google</p>
-<h1>Connexion interrompue.</h1>
-<p class="lead">Le compte <span class="alias">${alias}</span> n'a pas été ajouté. ${esc(r.message)}</p>
+<p class="close">You can close this tab <kbd>⌘ W</kbd></p>`
+    : `<p class="eyebrow">Google sign-in</p>
+<h1>Sign-in interrupted.</h1>
+<p class="lead">The account <span class="alias">${alias}</span> was not added. ${esc(r.message)}</p>
 <section class="card next">
-<h2>Réessayer</h2>
-<p>Relance la commande depuis le terminal, puis choisis le bon compte Google et accepte toutes les autorisations.</p>
+<h2>Try again</h2>
+<p>Run the command again from the terminal, then pick the right Google account and accept every permission.</p>
 <pre><span class="p">$ </span>npm run add-account -- ${alias}</pre>
 </section>`;
 
   return `<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer"><meta name="robots" content="noindex">
-<title>${r.ok ? "Compte connecté" : "Connexion interrompue"} · Cockpit</title>
+<title>${r.ok ? "Account connected" : "Sign-in interrupted"} · Cockpit</title>
 <style>${STYLE}:root{--accent:${accent}}</style></head>
 <body>
 <header class="wrap"><span class="wordmark">${MARK}<span>cockpit</span></span><span class="tag">plugin · google-multi</span></header>
 <main class="wrap">
 ${body}
 </main>
-<footer class="wrap">Les jetons restent sur ce Mac, dans <code>~/.config/google-multi-mcp</code>, lisibles par toi seul.
-Pour révoquer l'accès à tout moment : <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</footer>
+<footer class="wrap">Tokens stay on this computer, in <code>~/.config/google-multi-mcp</code>, readable only by you.
+To revoke access at any time: <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</footer>
 </body></html>`;
 }

@@ -15,7 +15,7 @@ const ALIAS_RE = /^[a-z0-9][a-z0-9_-]{0,31}$/;
 export function assertAlias(alias: string | undefined): asserts alias is string {
   if (!alias || !ALIAS_RE.test(alias)) {
     throw new Error(
-      `Alias invalide "${alias ?? ""}" : utilise a-z, 0-9, "-" ou "_" (32 caractères max), ex. perso, pro, asso.`,
+      `Invalid alias "${alias ?? ""}": use a-z, 0-9, "-" or "_" (32 characters max), e.g. perso, work, club.`,
     );
   }
 }
@@ -23,13 +23,13 @@ export function assertAlias(alias: string | undefined): asserts alias is string 
 function loadClientInfo(): { client_id: string; client_secret: string } {
   if (!fs.existsSync(CLIENT_FILE)) {
     throw new Error(
-      `Fichier OAuth introuvable : ${CLIENT_FILE}\nTélécharge le JSON du client OAuth "Application de bureau" depuis Google Cloud et place-le à cet endroit (voir README, étape 1).`,
+      `OAuth client file not found: ${CLIENT_FILE}\nDownload the JSON of the "Desktop app" OAuth client from Google Cloud and put it there (see the README, step 1).`,
     );
   }
   const raw = JSON.parse(fs.readFileSync(CLIENT_FILE, "utf8"));
   const info = raw.installed ?? raw.web;
   if (!info?.client_id || !info?.client_secret) {
-    throw new Error(`${CLIENT_FILE} ne ressemble pas à un client OAuth Google (clé "installed" attendue).`);
+    throw new Error(`${CLIENT_FILE} does not look like a Google OAuth client ("installed" key expected).`);
   }
   return info;
 }
@@ -83,7 +83,7 @@ export function getClient(alias: string): OAuth2Client {
   if (cached) return cached;
 
   const account = readAccount(alias);
-  if (!account) throw new Error(`Compte "${alias}" inconnu. Ajoute-le avec : npm run add-account -- ${alias}`);
+  if (!account) throw new Error(`Unknown account "${alias}". Add it with: npm run add-account -- ${alias}`);
 
   const client = newOAuthClient();
   client.setCredentials(account.credentials);

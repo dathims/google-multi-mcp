@@ -34,14 +34,14 @@ function summarize(e: calendar_v3.Schema$Event) {
 
 const eventFields = {
   summary: z.string().optional(),
-  start: z.string().optional().describe('ISO 8601 : "2026-10-12T14:00:00" (heure locale) ou "2026-10-12" (journée entière).'),
-  end: z.string().optional().describe("Même format que start. Pour une journée entière, end est exclusif (lendemain)."),
-  time_zone: z.string().default(DEFAULT_TIME_ZONE).describe("Fuseau IANA, ex. Europe/Paris."),
+  start: z.string().optional().describe('ISO 8601: "2026-10-12T14:00:00" (local time) or "2026-10-12" (all-day).'),
+  end: z.string().optional().describe("Same format as start. For an all-day event, end is exclusive (the next day)."),
+  time_zone: z.string().default(DEFAULT_TIME_ZONE).describe("IANA time zone, e.g. Europe/Paris."),
   description: z.string().optional(),
   location: z.string().optional(),
-  attendees: z.array(z.string()).optional().describe("Emails des invités."),
-  add_meet: z.boolean().optional().describe("Ajoute un lien Google Meet."),
-  send_updates: z.enum(["all", "externalOnly", "none"]).default("none").describe("Envoyer les invitations aux invités."),
+  attendees: z.array(z.string()).optional().describe("Emails of the guests."),
+  add_meet: z.boolean().optional().describe("Adds a Google Meet link."),
+  send_updates: z.enum(["all", "externalOnly", "none"]).default("none").describe("Send the invitations to the guests."),
 };
 
 type EventInput = { [K in keyof typeof eventFields]?: z.infer<(typeof eventFields)[K]> };
@@ -68,8 +68,8 @@ export function registerCalendarTools(server: McpServer) {
   server.registerTool(
     "calendar_list_calendars",
     {
-      title: "Lister les agendas",
-      description: "Liste les agendas (perso, partagés, abonnements) d'un ou de tous les comptes.",
+      title: "List calendars",
+      description: "Lists the calendars (own, shared, subscribed) of one or all accounts.",
       inputSchema: { account: z.string().optional().describe(readAccount) },
       annotations: { readOnlyHint: true },
     },
@@ -90,16 +90,16 @@ export function registerCalendarTools(server: McpServer) {
   server.registerTool(
     "calendar_list_events",
     {
-      title: "Lister les événements",
+      title: "List events",
       description:
-        'Liste les événements sur une période (7 prochains jours par défaut). account="all" fusionne les agendas de tous les comptes, triés par date : idéal pour voir les conflits.',
+        'Lists the events over a period (next 7 days by default). account="all" merges the calendars of every account, sorted by date: ideal to spot conflicts.',
       inputSchema: {
         account: z.string().optional().describe(readAccount),
         calendar_id: z.string().default("primary"),
-        time_min: z.string().optional().describe("ISO 8601 avec fuseau, ex. 2026-10-12T00:00:00+02:00. Défaut : maintenant."),
-        time_max: z.string().optional().describe("Défaut : time_min + 7 jours."),
-        query: z.string().optional().describe("Texte libre recherché dans les événements."),
-        max_results: z.number().int().min(1).max(250).default(50).describe("Par compte."),
+        time_min: z.string().optional().describe("ISO 8601 with offset, e.g. 2026-10-12T00:00:00+02:00. Default: now."),
+        time_max: z.string().optional().describe("Default: time_min + 7 days."),
+        query: z.string().optional().describe("Free text searched in the events."),
+        max_results: z.number().int().min(1).max(250).default(50).describe("Per account."),
       },
       annotations: { readOnlyHint: true },
     },
@@ -130,8 +130,8 @@ export function registerCalendarTools(server: McpServer) {
   server.registerTool(
     "calendar_create_event",
     {
-      title: "Créer un événement",
-      description: "Crée un événement dans l'agenda du compte choisi.",
+      title: "Create an event",
+      description: "Creates an event in the calendar of the chosen account.",
       inputSchema: {
         account: z.string().optional().describe(writeAccount),
         calendar_id: z.string().default("primary"),
@@ -156,8 +156,8 @@ export function registerCalendarTools(server: McpServer) {
   server.registerTool(
     "calendar_update_event",
     {
-      title: "Modifier un événement",
-      description: "Modifie un événement existant : seuls les champs fournis changent.",
+      title: "Update an event",
+      description: "Updates an existing event: only the provided fields change.",
       inputSchema: {
         account: z.string().optional().describe(writeAccount),
         calendar_id: z.string().default("primary"),
@@ -183,8 +183,8 @@ export function registerCalendarTools(server: McpServer) {
   server.registerTool(
     "calendar_delete_event",
     {
-      title: "Supprimer un événement",
-      description: "Supprime (ou annule, si invités) un événement.",
+      title: "Delete an event",
+      description: "Deletes an event (or cancels it, if it has guests).",
       inputSchema: {
         account: z.string().optional().describe(writeAccount),
         calendar_id: z.string().default("primary"),

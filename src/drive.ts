@@ -26,14 +26,14 @@ export function registerDriveTools(server: McpServer) {
   server.registerTool(
     "drive_search",
     {
-      title: "Rechercher dans Drive",
+      title: "Search Drive",
       description:
-        'Recherche des fichiers Google Drive (y compris Drives partagés). Fournir query (texte libre, cherché dans le nom et le contenu) ou drive_query (syntaxe Drive brute, ex. "mimeType = \'application/vnd.google-apps.spreadsheet\' and modifiedTime > \'2026-09-01\'"). account="all" cherche partout.',
+        'Searches Google Drive files (shared drives included). Provide query (free text, searched in the name and the content) or drive_query (raw Drive syntax, e.g. "mimeType = \'application/vnd.google-apps.spreadsheet\' and modifiedTime > \'2026-09-01\'"). account="all" searches everywhere.',
       inputSchema: {
         account: z.string().optional().describe(readAccount),
         query: z.string().optional(),
         drive_query: z.string().optional(),
-        max_results: z.number().int().min(1).max(100).default(15).describe("Par compte."),
+        max_results: z.number().int().min(1).max(100).default(15).describe("Per account."),
       },
       annotations: { readOnlyHint: true },
     },
@@ -67,9 +67,9 @@ export function registerDriveTools(server: McpServer) {
   server.registerTool(
     "drive_read_file",
     {
-      title: "Lire un fichier Drive",
+      title: "Read a Drive file",
       description:
-        "Lit le contenu texte d'un fichier : Google Docs/Slides en texte, Google Sheets en CSV (première feuille), fichiers texte tels quels. Pour les PDF et binaires, renvoie seulement les métadonnées et le lien.",
+        "Reads the text content of a file: Google Docs/Slides as text, Google Sheets as CSV (first sheet), text files as is. For PDFs and binaries, only returns the metadata and the link.",
       inputSchema: {
         account: z.string().optional().describe(oneAccount),
         file_id: z.string(),
@@ -93,11 +93,11 @@ export function registerDriveTools(server: McpServer) {
         const res = await d.files.export({ fileId: file_id, mimeType: EXPORTS[mime] }, { responseType: "text" });
         content = String(res.data);
       } else if (TEXT_MIME.test(mime)) {
-        if (Number(meta.size ?? 0) > MAX_DOWNLOAD) return { ...info, note: "Fichier trop volumineux (> 5 Mo) pour être lu ici." };
+        if (Number(meta.size ?? 0) > MAX_DOWNLOAD) return { ...info, note: "File too large (> 5 MB) to be read here." };
         const res = await d.files.get({ fileId: file_id, alt: "media", supportsAllDrives: true }, { responseType: "text" });
         content = String(res.data);
       } else {
-        return { ...info, note: "Format non textuel : ouvre le lien pour le consulter." };
+        return { ...info, note: "Not a text format: open the link to view it." };
       }
       return { ...info, content: truncate(content, max_chars) };
     }),

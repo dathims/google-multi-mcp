@@ -29,22 +29,22 @@ export function enabledAccounts(): StoredAccount[] {
 export function resolveAccounts(requested: string | undefined, opts: { allowAll: boolean }): string[] {
   const accounts = enabledAccounts();
   const aliases = accounts.map((a) => a.alias);
-  const choices = `${aliases.join(", ")}${opts.allowAll ? ' ou "all"' : ""}`;
+  const choices = `${aliases.join(", ")}${opts.allowAll ? ' or "all"' : ""}`;
 
   if (accounts.length === 0) {
-    throw new Error("Aucun compte Google configuré. Dans un terminal : npm run add-account -- <alias>");
+    throw new Error("No Google account configured. In a terminal: npm run add-account -- <alias>");
   }
   if (!requested) {
     if (accounts.length === 1) return aliases;
-    throw new Error(`Plusieurs comptes disponibles, précise le paramètre account : ${choices}.`);
+    throw new Error(`Several accounts available, set the account parameter: ${choices}.`);
   }
   if (requested === "all") {
-    if (!opts.allowAll) throw new Error(`"all" est réservé aux lectures. Choisis un compte : ${aliases.join(", ")}.`);
+    if (!opts.allowAll) throw new Error(`"all" is reserved for reads. Pick an account: ${aliases.join(", ")}.`);
     return aliases;
   }
   const wanted = requested.toLowerCase();
   const match = accounts.find((a) => a.alias === wanted || a.email.toLowerCase() === wanted);
-  if (!match) throw new Error(`Compte "${requested}" inconnu. Comptes disponibles : ${choices}.`);
+  if (!match) throw new Error(`Unknown account "${requested}". Available accounts: ${choices}.`);
   return [match.alias];
 }
 
@@ -72,9 +72,9 @@ export async function runOnAccounts<T>(aliases: string[], fn: (alias: string) =>
 }
 
 export function accountParamDescription(allowAll: boolean): string {
-  const current = enabledAccounts().map((a) => `${a.alias} (${a.email})`).join(", ") || "aucun";
+  const current = enabledAccounts().map((a) => `${a.alias} (${a.email})`).join(", ") || "none";
   return (
-    `Alias du compte Google ou son adresse email.${allowAll ? ' "all" interroge tous les comptes.' : ""}` +
-    ` Comptes au démarrage : ${current}. Appelle list_accounts pour la liste à jour.`
+    `Alias of the Google account, or its email address.${allowAll ? ' "all" queries every account.' : ""}` +
+    ` Accounts at startup: ${current}. Call list_accounts for the current list.`
   );
 }

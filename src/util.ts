@@ -12,10 +12,10 @@ export function fail(err: unknown): CallToolResult {
   let hint = "";
   if (/invalid_grant/i.test(message)) {
     hint =
-      "\nLe jeton de ce compte est expiré ou révoqué. Relance : npm run add-account -- <alias>." +
-      " Si cela arrive tous les 7 jours, passe l'écran de consentement Google Cloud en mode Production (README).";
+      "\nThe token of this account has expired or been revoked. Run again: npm run add-account -- <alias>." +
+      " If this happens every 7 days, switch the Google Cloud consent screen to Production mode (README).";
   }
-  return { content: [{ type: "text", text: `Erreur : ${message}${hint}` }], isError: true };
+  return { content: [{ type: "text", text: `Error: ${message}${hint}` }], isError: true };
 }
 
 /** Wraps a tool handler so that any exception becomes an isError result Claude can read. */
@@ -31,10 +31,10 @@ export function safe<A>(handler: (args: A) => Promise<unknown>) {
 
 export function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
-  return `${text.slice(0, max)}\n\n[... tronqué : ${text.length - max} caractères supplémentaires]`;
+  return `${text.slice(0, max)}\n\n[... truncated: ${text.length - max} more characters]`;
 }
 
 export function rejectNewlines(field: string, value: string | undefined): void {
   // Prevents header injection in hand-built emails.
-  if (value && /[\r\n]/.test(value)) throw new Error(`Le champ ${field} ne doit pas contenir de retour à la ligne.`);
+  if (value && /[\r\n]/.test(value)) throw new Error(`The ${field} field must not contain a line break.`);
 }

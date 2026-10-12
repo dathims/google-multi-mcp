@@ -11,17 +11,17 @@ const server = new McpServer(
   { name: "google-multi", version: "1.0.0" },
   {
     instructions:
-      "Accès à plusieurs comptes Google (Gmail, Agenda, Drive). Chaque outil prend un paramètre account " +
-      '(alias ou email). Pour les lectures, account="all" interroge tous les comptes. Pour envoyer un mail ' +
-      "ou modifier un agenda, toujours utiliser un compte précis et confirmer l'expéditeur avec l'utilisateur.",
+      "Access to several Google accounts (Gmail, Calendar, Drive). Every tool takes an account parameter " +
+      '(alias or email). For reads, account="all" queries every account. To send an email ' +
+      "or change a calendar, always use one specific account and confirm the sender with the user.",
   },
 );
 
 server.registerTool(
   "list_accounts",
   {
-    title: "Lister les comptes Google",
-    description: "Liste les comptes Google connectés (alias et email).",
+    title: "List Google accounts",
+    description: "Lists the connected Google accounts (alias and email).",
     inputSchema: {},
     annotations: { readOnlyHint: true },
   },
@@ -34,4 +34,4 @@ registerDriveTools(server);
 
 await server.connect(new StdioServerTransport());
 // stdout is reserved for the MCP protocol: logs go to stderr.
-console.error(`google-multi prêt, comptes : ${enabledAccounts().map((a) => a.alias).join(", ") || "aucun"}`);
+console.error(`google-multi ready, accounts: ${enabledAccounts().map((a) => a.alias).join(", ") || "none"}`);
